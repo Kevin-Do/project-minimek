@@ -5,22 +5,34 @@ import {Table} from "semantic-ui-react";
 import PilotsListHeader from "./PilotsListHeader";
 import PilotsListRow from "./PilotsListRow";
 
-import {getEntitiesSession} from "features/entities/entitySelectors";
-
+import {selectEntities} from "features/entities/entitySelectors";
 import {selectPilot} from "../pilotsActions";
 import {selectCurrentPilot} from "../pilotsSelectors";
+import {createSelector} from "redux-orm"
+import orm from "app/schema";
+
+const selectAllPilotIds = createSelector(
+    orm,
+    selectEntities,
+    session => {
+        const {Pilot} = session;
+        const pilotIds = Pilot.all().toModelArray().map(pilotModel => pilotModel.getId());
+        return pilotIds;
+    }
+);
 
 
 const mapState = (state) => {
     // Create a Redux-ORM Session from our "entities" slice, which
     // contains the "tables" for each model type
-    const session = getEntitiesSession(state);
+    //const session = getEntitiesSession(state);
+
 
     // Retrieve the model class that we need.  Each Session
     // specifically "binds" model classes to itself, so that
     // updates to model instances are applied to that session.
     // These "bound classes" are available as fields in the sesssion.
-    const {Pilot} = session;
+    //const {Pilot} = session;
 
     // Query the session for all Pilot instances.
     // The QuerySet that is returned from all() can be used to
@@ -31,8 +43,8 @@ const mapState = (state) => {
     // for each entry, rather than the plain JS objects.
 
     // Extract a list of IDs for each Pilot entry
-    const pilots = Pilot.all().toModelArray().map(pilotModel => pilotModel.getId());
-
+    //const pilots = Pilot.all().toModelArray().map(pilotModel => pilotModel.getId());
+    const pilots = selectAllPilotIds(state);
     const currentPilot = selectCurrentPilot(state);
 
     // Return the list of pilot IDs and the current pilot ID as props
@@ -48,6 +60,7 @@ const actions = {
 
 export class PilotsList extends Component {
     render() {
+        console.log("Pilot List rerendering.")
         const {pilots = [], selectPilot, currentPilot} = this.props;
 
         const pilotRows = pilots.map(pilotID => (
